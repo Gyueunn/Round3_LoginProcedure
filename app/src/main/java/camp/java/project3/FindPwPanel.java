@@ -6,17 +6,16 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 public class FindPwPanel extends JPanel{
-	private MainFrame start;
 	private JLabel findPW;
 	private JTextField idField, nameField, birthField;
 	private JButton cancel, check;
 	
-	public FindPwPanel(MainFrame start) {
-		this.start = start;
+	public FindPwPanel() {
 		setLayout(null);
 		
 		findPW = new JLabel("Find PW");
@@ -44,8 +43,8 @@ public class FindPwPanel extends JPanel{
 		add(nameField);
 		
 		//생년월일 
-		JLabel birth = new JLabel("Date of Birth : ");
-		birth.setBounds(280, 380, 100, 40);
+		JLabel birth = new JLabel("Date of Birth (YYMMDD) : ");
+		birth.setBounds(280, 380, 170, 40);
 		add(birth);
 		
 		birthField = new JTextField();
@@ -59,21 +58,39 @@ public class FindPwPanel extends JPanel{
 		cancel.addActionListener(loginListener);
 		add(cancel);
 		
-		String checkButton = "Check";
+		String checkButton = "Change PW";
 		check = new JButton(checkButton);
 		check.setBounds(550, 450, 150, 50);
 		check.addActionListener(loginListener);
 		add(check);
+		MainFrame.frame.add(this);
 	}
 	
 	ActionListener loginListener = new ActionListener() {
         public void actionPerformed(ActionEvent e) {
         	String input = e.getActionCommand();
         	if(input.equals("Canel")) {
-        		start.change("LoginPanel");//로그인 페이지 
+        		idField.setText(null);
+        		nameField.setText(null);
+        		birthField.setText(null);
+        		JOptionPane.showMessageDialog(null, "PW 찾기를 취소했습니다.", "MESSAGE", JOptionPane.PLAIN_MESSAGE);
+        		new LoginPanel();
+        		FindPwPanel.this.setVisible(false);
         	}
-        	else if(input.equals("Check")) {
-        		start.change("ChangePwPanel");
+        	else if(input.equals("Change PW")) {
+        		if(idField.getText().isEmpty() || nameField.getText().isEmpty() || birthField.getText().isEmpty()) JOptionPane.showMessageDialog(null, "입력되지 않은 항목이 있습니다.", "MESSAGE", JOptionPane.PLAIN_MESSAGE);
+        		else {
+        			ConnectMysql.select(idField.getText(), nameField.getText(), birthField.getText());
+        			idField.setText(null);
+            		nameField.setText(null);
+            		birthField.setText(null);
+            		if(!ConnectMysql.findPWSuccess.equals("")) {
+            			JOptionPane.showMessageDialog(null, "PW를 찾았습니다.\n" +ConnectMysql.findPWSuccess , "MESSAGE", JOptionPane.PLAIN_MESSAGE);
+            			new ChangePwPanel();
+                		FindPwPanel.this.setVisible(false);
+            		}
+            		else JOptionPane.showMessageDialog(null, "PW를 찾지 못했습니다.", "MESSAGE", JOptionPane.PLAIN_MESSAGE);
+        		}
         	}
         }
     };

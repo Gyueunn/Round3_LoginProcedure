@@ -8,21 +8,22 @@ import java.awt.event.ActionListener;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
 class JoinPanel extends JPanel{
-	private MainFrame start;
-	
 	private JTextField idField, nameField, birthField, emailField;
 	private JPasswordField pwField, cpwField;
 	private JButton cancel, signUp, ok, pwCheck;
 	private JLabel check = new JLabel();
 	private JLabel sign = new JLabel();
+	private boolean idDuplicate = false;
+	private boolean pwDuplicate = false;
 	
-	public JoinPanel(MainFrame start) {
-		this.start = start;
+	private JComboBox<String> majorBox = new JComboBox<>();
+	public JoinPanel() {
 		setLayout(null);
 		
 		sign.setText("SignUp");
@@ -85,8 +86,8 @@ class JoinPanel extends JPanel{
 		add(check);
 		 
 		//생년월일 
-		JLabel birth = new JLabel("Date of Birth : ");
-		birth.setBounds(280, 400, 100, 40);
+		JLabel birth = new JLabel("Date of Birth (YYMMDD) : ");
+		birth.setBounds(280, 400, 170, 40);
 		add(birth);
 		
 		birthField = new JTextField();
@@ -98,13 +99,13 @@ class JoinPanel extends JPanel{
 		major.setBounds(280, 450, 100, 40);
 		add(major);
 		
-		JComboBox<String> majorBox;
-		String majorCombo[] = {"글로벌 리더십학부", "국제어문학부", "경영경제학부", "법학부", "커뮤니케이션학부", "공간환경시스템공학부", "기계제어공학부", "콘텐츠융합디자인학부", "생명과학부", "전산전자공학부", "상담심리사회복지학부", "ICT창업학부", "창의융합교육원", "AI융합교육원"};
-		majorBox = new JComboBox<>();
+		
+		String majorCombo[] = {"선택...", "글로벌 리더십학부", "국제어문학부", "경영경제학부", "법학부", "커뮤니케이션학부", "공간환경시스템공학부", "기계제어공학부", "콘텐츠융합디자인학부", "생명과학부", "전산전자공학부", "상담심리사회복지학부", "ICT창업학부", "창의융합교육원", "AI융합교육원"};
 		
 		for(int i = 0; i<majorCombo.length; i++) {
 			majorBox.addItem(majorCombo[i]);
 		}
+		
 		majorBox.setBounds(480, 450, 150, 50);
 		majorBox.setBackground(Color.WHITE);
 		add(majorBox);
@@ -130,16 +131,79 @@ class JoinPanel extends JPanel{
 		signUp.setBounds(530, 580, 150, 50);
 		signUp.addActionListener(loginListener);
 		add(signUp);
+		MainFrame.frame.add(this);
 	}
 	
 	ActionListener loginListener = new ActionListener() {
         public void actionPerformed(ActionEvent e) {
         	String input = e.getActionCommand();
-        	if(input.equals("Check")) {
-        		start.change("LoginPanel");//정보들이 맞다면 사용자 페이지 아니라면 원래 로그인 페이지 
+        	if(e.getSource() == ok) {
+        		//학번 중복 확인 
+        		ConnectMysql.select(idField.getText());
+        		if(ConnectMysql.selectId==1) {
+        			JOptionPane.showMessageDialog(null, "이미 가입된 아이디입니다.", "MESSAGE", JOptionPane.PLAIN_MESSAGE);
+        		}
+        		else {
+        			idDuplicate=true;
+        			JOptionPane.showMessageDialog(null, "사용 가능한 아이디입니다.", "MESSAGE", JOptionPane.PLAIN_MESSAGE);
+        		}
+        	}
+        	else if((e.getSource() == pwCheck)){
+            	String pw = new String(pwField.getPassword());
+            	String cpw = new String(cpwField.getPassword());
+        		if(!pw.equals(cpw)) {
+        			check.setText("불일치합니다.");
+        			cpwField.setText(null);
+        			pwField.setText(null);
+        		}
+        		else {
+        			check.setText("일치합니다.");
+        			pwDuplicate=true;
+        		}
+        	}
+        	else if(input.equals("Check")) {
+        		if(idDuplicate==false || pwDuplicate == false || nameField.getText().isEmpty() || birthField.getText().isEmpty() || majorBox.getSelectedItem().equals("선택...")) {
+            		JOptionPane.showMessageDialog(null, "입력되지 않은 항목이 있습니다.", "MESSAGE", JOptionPane.PLAIN_MESSAGE);
+            	}
+        		else{
+        			if(!emailField.getText().isEmpty()) ConnectMysql.insert(idField.getText(), nameField.getText(), pwField.getText(), birthField.getText(), majorBox.getSelectedItem().toString(), emailField.getText());
+        			else ConnectMysql.insert(idField.getText(), nameField.getText(), pwField.getText(), birthField.getText(), majorBox.getSelectedItem().toString());
+        			
+        			ConnectMysql.select(idField.getText());
+        			
+        			idField.setText(null);
+        			nameField.setText(null);
+        			pwField.setText(null);
+        			cpwField.setText(null);
+        			check.setText("입력하세요");
+        			birthField.setText(null);
+        			majorBox.setSelectedItem("선택...");
+					emailField.setText(null);
+					
+        			if(ConnectMysql.selectId == 1) {
+        				JOptionPane.showMessageDialog(null, "회원가입이 완료되었습니다!", "MESSAGE", JOptionPane.PLAIN_MESSAGE);
+        				new LoginPanel();
+        				JoinPanel.this.setVisible(false);
+        			}
+        			else {
+        				JOptionPane.showMessageDialog(null, "회원가입에 실패했습니다!", "MESSAGE", JOptionPane.PLAIN_MESSAGE);
+        			}
+        			//정보들이 맞다면 사용자 페이지 아니라면 원래 로그인 페이지 
+        		}
         	}
         	else if(input.equals("Canel")) {
-        		start.change("LoginPanel");
+        		JOptionPane.showMessageDialog(null, "회원가입을 취소했습니다.", "MESSAGE", JOptionPane.PLAIN_MESSAGE);
+        		nameField.setText(null);
+    			idField.setText(null);
+    			nameField.setText(null);
+    			pwField.setText(null);
+    			cpwField.setText(null);
+    			check.setText("입력하세요");
+    			birthField.setText(null);
+    			majorBox.setSelectedItem("선택...");
+				emailField.setText(null);
+				new LoginPanel();
+				JoinPanel.this.setVisible(false);
         	}
         }
     };

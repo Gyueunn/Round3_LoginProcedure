@@ -1,112 +1,120 @@
 package camp.java.project3;
 
-import java.awt.Color;
-import java.awt.FlowLayout;
 import java.awt.Font;
-import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
 public class LoginPanel extends JPanel{
-	public static JPanel allLogin = new JPanel();
-	private MainFrame start;
+	private int attemptCount = 0;
+	private JLabel findPW;
+	private JTextField idField;
+	private JPasswordField pwField;
+	private JButton loginButton, findPwButton, signUpButton;
 	
-	public JLabel hgu = new JLabel();
-	public JPanel r = new JPanel();//위에 글씨와 아이디,비밀번호 페널을 담을 패널 
-	public JPanel b = new JPanel(); //버튼들의 패널을 담을 패널 
-	public JPanel main = new JPanel();
-	public JButton login = new JButton();
-	public JPanel buttonPanel = new JPanel();
-	public JPanel input = new JPanel();
-	public JPanel option = new JPanel();
-	
-	public LoginPanel(MainFrame start){
-		this.start = start;
+	public LoginPanel() {
 		setLayout(null);
-		allLogin.setBounds(0, 0, 1000, 700);
-		allLogin.setLayout(null);
-		main.setBounds(200, 200, 600, 400);
-		main.setLayout(new GridLayout(2, 1));
-		setInputButton();
-		main.add(r);	
-		setLoginButton();
-		optionButton();
-		b.add(buttonPanel);
-		main.add(b);		
-		buttonPanel.setLayout(new GridLayout(2, 1));
-		this.add(main);
-	}
-
-	void setInputButton() {
-		r.setLayout(new GridLayout(2, 1));
-		hgu.setText("Login");
-		hgu.setFont(new Font("Arial", Font.ITALIC, 80));
-		hgu.setHorizontalAlignment(JLabel.CENTER);
-		r.add(hgu);
-		input.setLayout(new GridLayout(2, 1));
-		JTextField idText = new JTextField(10);
-		JLabel id = new JLabel("ID : ");
-		id.setFont(new Font("Arial", Font.ITALIC, 20));
-		JPanel idPanel = new JPanel();
-		idPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
-		idPanel.add(id);
-		idPanel.add(idText);
-		input.add(idPanel);
+		findPW = new JLabel("Login");
+		findPW.setFont(new Font("Arial", Font.ITALIC, 80));
+		findPW.setHorizontalAlignment(JLabel.CENTER);
+		findPW.setBounds(250, 160, 500, 100);
+		add(findPW);
 		
-		JPasswordField pwdText = new JPasswordField(10);
-		JLabel pwd = new JLabel("PW : ");
-		JPanel pwdPanel = new JPanel();
-		pwd.setFont(new Font("Arial", Font.ITALIC, 20));
-		pwdPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
-		pwdPanel.add(pwd);
-		pwdPanel.add(pwdText);
-		input.add(pwdPanel);
-		r.add(input);
-	}
-	
-	void setLoginButton() {
-		String button = "Login";
-		login = new JButton(button);
-		login.addActionListener(loginListener);
-		buttonPanel.add(login);
+		//학번 
+		JLabel studentID = new JLabel("Student ID : ");
+		studentID.setBounds(280, 290, 100, 40);
+		add(studentID);
+		
+		idField = new JTextField();
+		idField.setBounds(480, 290, 240, 40);
+		add(idField);
+		
+		//이름 
+		JLabel pw = new JLabel("PW : ");
+		pw.setBounds(280, 340, 100, 40);
+		add(pw);
+		
+		pwField = new JPasswordField();
+		pwField.setBounds(480, 340, 240, 40);
+		add(pwField);
+		
+		//버튼 
+		String loginString = "Login";
+		loginButton = new JButton(loginString);
+		loginButton.setBounds(350, 410, 300, 50);
+		loginButton.addActionListener(loginListener);
+		add(loginButton);
+		
+		String findPwString = "Find PW";
+		findPwButton = new JButton(findPwString);
+		findPwButton.setBounds(320, 470, 150, 30);
+		findPwButton.addActionListener(loginListener);
+		add(findPwButton);
+		
+		String signUpString = "Sign Up";
+		signUpButton = new JButton(signUpString);
+		signUpButton.setBounds(520, 470, 150, 30);
+		signUpButton.addActionListener(loginListener);
+		add(signUpButton);
+		this.setVisible(true);
+		MainFrame.frame.add(this);
 	}
 	
 	ActionListener loginListener = new ActionListener() {
         public void actionPerformed(ActionEvent e) {
         	String input = e.getActionCommand();
         	if(input.equals("Login")) {
-        		start.change("UserPanel"); //사용자 페이지로 
+        		if(idField.getText().isEmpty() || pwField.getText().isEmpty()) {
+            		JOptionPane.showMessageDialog(null, "입력되지 않은 항목이 있습니다.", "MESSAGE", JOptionPane.PLAIN_MESSAGE);
+            	}
+        		else {
+        			ConnectMysql.select(idField.getText(), pwField.getText());
+        			if(MainFrame.userId.equals("Adminid")) {
+        				
+        				
+        				
+        				
+        				
+        				
+        				JOptionPane.showMessageDialog(null, "관리자로 로그인 되었습니다.", "MESSAGE", JOptionPane.PLAIN_MESSAGE);
+        				idField.setText(null);
+            			pwField.setText(null);
+        				new AdminPanel();
+        				LoginPanel.this.setVisible(false);
+        			}
+        			else {
+        				if(ConnectMysql.loginSuccess == 1) {
+            				MainFrame.userId = idField.getText();
+            				JOptionPane.showMessageDialog(null, "로그인 되었습니다.", "MESSAGE", JOptionPane.PLAIN_MESSAGE);
+            				idField.setText(null);
+                			pwField.setText(null);
+                			new UserPanel();
+                			LoginPanel.this.setVisible(false);
+            			}
+            			else {
+            				JOptionPane.showMessageDialog(null, "로그인에 실패했습니다.", "MESSAGE", JOptionPane.PLAIN_MESSAGE);
+            			}
+        			}
+        		}
+        	}
+        	else if(input.equals("Find PW")) {
+        		idField.setText(null);
+    			pwField.setText(null);
+    			new FindPwPanel();
+    			LoginPanel.this.setVisible(false);
+        	}
+        	else if(input.equals("Sign Up")) {
+        		idField.setText(null);
+    			pwField.setText(null);
+    			new JoinPanel();
+    			LoginPanel.this.setVisible(false);
         	}
         }
     };
-	
-	void optionButton() {
-		option.setLayout(new GridLayout(1, 2));
-		String[] button = {"Find PW", "Sign Up"};
-		JButton[] bt = new JButton[button.length];
-		for(int i=0; i<button.length; i++) {
-			bt[i] = new JButton(button[i]);
-			option.add(bt[i]);
-			bt[i].addActionListener(optionListener);
-		}
-		buttonPanel.add(option);
-	}
-	ActionListener optionListener = new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-        	String input = e.getActionCommand();
-        	if(input.equals("Sign Up")) {
-        		start.change("JoinPanel");
-        	}
-        	if(input.equals("Find PW")) {
-        		start.change("FindPwPanel");
-        	}
-        }
-    };
-	
 }

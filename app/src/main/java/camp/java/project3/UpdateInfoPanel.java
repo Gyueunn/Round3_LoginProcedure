@@ -8,6 +8,7 @@ import java.awt.event.ActionListener;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
@@ -15,15 +16,17 @@ import javax.swing.JTextField;
 public class UpdateInfoPanel extends JPanel{
 private MainFrame start;
 	
-	private JTextField emailField;
+	private JTextField emailField, nameField;
 	private JPasswordField pwField, cpwField;
 	private JButton cancel, update, pwCheck, dropOut;
-	private JLabel idField, nameField, birthField, correct;
+	private JLabel idField, birthField, correct;
+	JComboBox<String> majorBox;
+	private boolean pwDuplicate = false;
+	private String[] user  = new String [4];
 	
-	public UpdateInfoPanel(MainFrame start) {
-		this.start = start;
+	public UpdateInfoPanel() {
 		setLayout(null);
-		
+		user = UserPanel.userInfo;
 		JLabel sign = new JLabel("Update Info");
 		sign.setFont(new Font("Arial", Font.ITALIC, 60));
 		sign.setHorizontalAlignment(JLabel.CENTER);
@@ -35,7 +38,7 @@ private MainFrame start;
 		studentID.setBounds(280, 160, 100, 40);
 		add(studentID);
 		
-		idField = new JLabel("22100271");
+		idField = new JLabel(MainFrame.userId);
 		idField.setBounds(480, 160, 240, 40);
 		add(idField);
 		
@@ -44,7 +47,7 @@ private MainFrame start;
 		name.setBounds(280, 210, 100, 40);
 		add(name);
 		
-		nameField = new JLabel("박규은");
+		nameField = new JTextField(user[0]);
 		nameField.setBounds(480, 210, 240, 40);
 		add(nameField);
 		
@@ -78,11 +81,11 @@ private MainFrame start;
 		add(correct);
 				 
 		//생년월일 
-		JLabel birth = new JLabel("Date of Birth : ");
-		birth.setBounds(280, 400, 100, 40);
+		JLabel birth = new JLabel("Date of Birth (YYMMDD) : ");
+		birth.setBounds(280, 400, 170, 40);
 		add(birth);
 		
-		birthField = new JLabel("20020823");
+		birthField = new JLabel(user[1]);
 		birthField.setBounds(480, 400, 240, 40);
 		add(birthField);
 		
@@ -91,8 +94,8 @@ private MainFrame start;
 		major.setBounds(280, 440, 100, 40);
 		add(major);
 		
-		JComboBox<String> majorBox;
-		String majorCombo[] = {"글로벌 리더십학부", "국제어문학부", "경영경제학부", "법학부", "커뮤니케이션학부", "공간환경시스템공학부", "기계제어공학부", "콘텐츠융합디자인학부", "생명과학부", "전산전자공학부", "상담심리사회복지학부", "ICT창업학부", "창의융합교육원", "AI융합교육원"};
+		
+		String majorCombo[] = {"선택...", "글로벌 리더십학부", "국제어문학부", "경영경제학부", "법학부", "커뮤니케이션학부", "공간환경시스템공학부", "기계제어공학부", "콘텐츠융합디자인학부", "생명과학부", "전산전자공학부", "상담심리사회복지학부", "ICT창업학부", "창의융합교육원", "AI융합교육원"};
 		majorBox = new JComboBox<>();
 		
 		for(int i = 0; i<majorCombo.length; i++) {
@@ -100,6 +103,7 @@ private MainFrame start;
 		}
 		majorBox.setBounds(480, 440, 150, 50);
 		majorBox.setBackground(Color.WHITE);
+		majorBox.setSelectedItem(user[2]);
 		add(majorBox);
 		
 		//이메일 
@@ -107,7 +111,7 @@ private MainFrame start;
 		email.setBounds(280, 500, 100, 40);
 		add(email);
 		
-		emailField = new JTextField();
+		emailField = new JTextField(user[3]);
 		emailField.setBounds(480, 500, 240, 40);
 		add(emailField);
 		
@@ -126,21 +130,70 @@ private MainFrame start;
 		
 		String dropOutButton = "DropOut";
 		dropOut = new JButton(dropOutButton);
-		dropOut.setBounds(430, 610, 150, 25);
+		dropOut.setBounds(430, 615, 150, 25);
 		dropOut.addActionListener(loginListener);
 		add(dropOut);
+		MainFrame.frame.add(this);
 	}
 	ActionListener loginListener = new ActionListener() {
         public void actionPerformed(ActionEvent e) {
         	String input = e.getActionCommand();
-        	if(input.equals("Canel")) {
-        		start.change("UserPanel");//정보들이 맞다면 사용자 페이지 아니라면 원래 로그인 페이지 
+        	if((e.getSource() == pwCheck)){
+            	String pw = new String(pwField.getPassword());
+            	String cpw = new String(cpwField.getPassword());
+        		if(!pw.equals(cpw)) {
+        			correct.setText("불일치합니다.");
+        			cpwField.setText(null);
+        			pwField.setText(null);
+        		}
+        		else {
+        			correct.setText("일치합니다.");
+        			pwDuplicate=true;
+        		}
+        	}
+        	else if(input.equals("Canel")) {
+        		cpwField.setText(null);
+    			pwField.setText(null);
+    			majorBox.setSelectedItem("선택...");
+				emailField.setText(null);
+				JOptionPane.showMessageDialog(null, "정보 변경을 취소했습니다.", "MESSAGE", JOptionPane.PLAIN_MESSAGE);
+				new UserPanel();
+				UpdateInfoPanel.this.setVisible(false);
         	}
         	else if(input.equals("Update")) {
-        		start.change("UpdateInfoPanel");//정보들이 맞다면 사용자 페이지 아니라면 원래 로그인 페이지 
+        		if(pwDuplicate == false || cpwField.getText().isEmpty() || majorBox.getSelectedItem().equals("선택...")) {
+            		JOptionPane.showMessageDialog(null, "입력되지 않은 항목이 있습니다.", "MESSAGE", JOptionPane.PLAIN_MESSAGE);
+            	}
+				else {
+					if(!emailField.getText().isEmpty()) ConnectMysql.updateInfo(MainFrame.userId, nameField.getText(), cpwField.getText(), majorBox.getSelectedItem().toString(), emailField.getText());
+					else ConnectMysql.updateInfo(MainFrame.userId, nameField.getText(), pwField.getText(), majorBox.getSelectedItem().toString());
+					
+					JOptionPane.showMessageDialog(null, "정보가 수정되었습니다.", "MESSAGE", JOptionPane.PLAIN_MESSAGE);
+					cpwField.setText(null);
+	    			pwField.setText(null);
+	    			majorBox.setSelectedItem("선택...");
+					emailField.setText(null);
+	        		new UserPanel();
+	        		UpdateInfoPanel.this.setVisible(false);
+				}
         	}
         	else if(input.equals("DropOut")) {
-        		start.change("LoginPanel");//정보들이 맞다면 사용자 페이지 아니라면 원래 로그인 페이지 
+        		cpwField.setText(null);
+    			pwField.setText(null);
+    			majorBox.setSelectedItem("선택...");
+				emailField.setText(null);
+				int var = JOptionPane.showConfirmDialog(null, "정말로 계정을 삭제하시겠습니까?", "MESSAGE", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, null);
+				if(var == 0) {
+					ConnectMysql.deleteUser(MainFrame.userId);
+					MainFrame.userId = "";
+					JOptionPane.showMessageDialog(null, "계정이 삭제되었습니다.", "MESSAGE", JOptionPane.PLAIN_MESSAGE);
+	        		new LoginPanel();
+	        		UpdateInfoPanel.this.setVisible(false);
+				}
+				else {
+					JOptionPane.showMessageDialog(null, "계정이 삭제를 취소했습니다.", "MESSAGE", JOptionPane.PLAIN_MESSAGE);
+				}
+        		
         	}
         }
     };
