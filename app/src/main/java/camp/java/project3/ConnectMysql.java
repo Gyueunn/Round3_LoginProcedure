@@ -4,6 +4,8 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JOptionPane;
 
@@ -15,8 +17,9 @@ public class ConnectMysql {
     private static final String USERNAME = "root";//DBMS접속 시 아이디
     private static final String PASSWORD = "12345678";//DBMS접속 시 비밀번호
     private static final String URL = "jdbc:mysql://localhost/Logindb";//DBMS접속할 db명
-    static int selectId = 0;
-    static int loginSuccess=0;
+    static int selectId;
+    static int loginSuccess;
+    static int countNum=0;
     static String findPWSuccess = "";
     static String[] userInfo  = new String [4];
   
@@ -142,6 +145,7 @@ public class ConnectMysql {
          }
 	}
 	
+	//로그인시에 정보 가져오기 
 	public static String[] selectUser(String id) {
 		String sql = "SELECT username, userdob, usermajor, useremail from tb_user where userid = '"+id+"';";
 		ResultSet rs = null;
@@ -363,9 +367,165 @@ public class ConnectMysql {
          }
 	}
 	
+	//pw 변경 
+	public static void updateInfo(String id, String pw) {
+		String sql = "update tb_user Set userpw = '" + pw + "' Where userid = '" + id + "';";
+		Statement stmt = null;
+		
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver");
+        	conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+            
+            stmt = conn.createStatement();
+            System.out.println("연결 성공");
+            
+            stmt.executeUpdate(sql);// 5. 쿼리 수행
+            
+            
+         } catch (ClassNotFoundException e) {
+            System.out.println("드라이버 로딩 실패");
+         } catch (SQLException e) {
+            System.out.println("에러 " + e);
+         } finally {
+            try {
+               if (conn != null && !conn.isClosed()) {
+                  conn.close();
+               }
+               if (stmt != null && !stmt.isClosed()) {
+                  stmt.close();
+               }
+            } catch (SQLException e) {
+               e.printStackTrace();
+            }
+         }
+	}
 	
-	
-	
+	//관리자로 로그인 시에 모든 데이터 가져오기 
+	public static String[] selectUser() {
+		String sql = "select * from tb_user;";
+		ResultSet rs = null;
+		Statement stmt = null;
+		
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver");
+        	conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+            
+            
+            stmt = conn.createStatement();
+            System.out.println("연결 성공");
+            
+            rs = stmt.executeQuery(sql);// 5. 쿼리 수행
+
+            while(rs.next()) { // 6. 실행결과 출력하기
+            	List<String> list = new ArrayList<String>();
+            	list.add(rs.getString(2));
+            	list.add(rs.getString(3));
+            	list.add(rs.getString(4));
+            	list.add(rs.getString(5));
+            	list.add(rs.getString(6));
+            	list.add(rs.getString(7));
+            	list.add(rs.getString(8));
+            	System.out.println(list);
+            	AdminPanel.info.add(list);
+            }
+            
+            
+         } catch (ClassNotFoundException e) {
+            System.out.println("드라이버 로딩 실패");
+         } catch (SQLException e) {
+            System.out.println("에러 " + e);
+         } finally {
+            try {
+               if (conn != null && !conn.isClosed()) {
+                  conn.close();
+               }
+               if (stmt != null && !stmt.isClosed()) {
+                  stmt.close();
+               }
+               if (rs != null && !rs.isClosed()) {
+                  rs.close();
+               }
+            } catch (SQLException e) {
+               e.printStackTrace();
+            }
+         }
+		return userInfo;
+	}
+	//모두 삭제 
+	public static void truncate() {
+		String sql = "truncate tb_user;";
+		ResultSet rs = null;
+		Statement stmt = null;
+		
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver");
+        	conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+            
+            stmt = conn.createStatement();
+            System.out.println("연결 성공");
+            stmt.executeUpdate(sql);// 5. 쿼리 수행
+            
+         } catch (ClassNotFoundException e) {
+            System.out.println("드라이버 로딩 실패");
+         } catch (SQLException e) {
+            System.out.println("에러 " + e);
+         } finally {
+            try {
+               if (conn != null && !conn.isClosed()) {
+                  conn.close();
+               }
+               if (stmt != null && !stmt.isClosed()) {
+                  stmt.close();
+               }
+               if (rs != null && !rs.isClosed()) {
+                  rs.close();
+               }
+            } catch (SQLException e) {
+               e.printStackTrace();
+            }
+         }
+	}
+	public static String[] selectAllUser() {
+		String sql = "select count(*) from tb_user;";
+		ResultSet rs = null;
+		Statement stmt = null;
+		
+		try {
+			Class.forName("com.mysql.cj.jdbc.Driver");
+        	conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+            
+            
+            stmt = conn.createStatement();
+            System.out.println("연결 성공");
+            
+            rs = stmt.executeQuery(sql);// 5. 쿼리 수행
+
+            if(rs.next()) { // 6. 실행결과 출력하기
+            	countNum = rs.getInt(1);
+            }
+            
+            
+         } catch (ClassNotFoundException e) {
+            System.out.println("드라이버 로딩 실패");
+         } catch (SQLException e) {
+            System.out.println("에러 " + e);
+         } finally {
+            try {
+               if (conn != null && !conn.isClosed()) {
+                  conn.close();
+               }
+               if (stmt != null && !stmt.isClosed()) {
+                  stmt.close();
+               }
+               if (rs != null && !rs.isClosed()) {
+                  rs.close();
+               }
+            } catch (SQLException e) {
+               e.printStackTrace();
+            }
+         }
+		return userInfo;
+	}
 	
 	
   

@@ -13,7 +13,8 @@ import javax.swing.JTextField;
 
 public class ChangePwPanel extends JPanel{
 	private JLabel chagePW;
-	private JPasswordField pwField, cpwField, newPwField;
+	private JTextField idField;
+	private JPasswordField cpwField, newPwField;
 	private JLabel check;
 	private JButton ok, pwCheck;
 	private boolean pwDuplicate = false;
@@ -27,15 +28,14 @@ public class ChangePwPanel extends JPanel{
 		chagePW.setBounds(250, 140, 500, 100);
 		add(chagePW);
 		
-		JLabel pw = new JLabel("PW : ");
-		pw.setBounds(280, 250, 100, 40);
-		add(pw);
+		JLabel id = new JLabel("Student ID : ");
+		id.setBounds(280, 250, 100, 40);
+		add(id);
 		
-		pwField = new JPasswordField();
-		pwField.setBounds(480, 250, 240, 40);
-		add(pwField);
-		
-		
+		idField = new JTextField();
+		idField.setBounds(480, 250, 240, 40);
+		add(idField);
+
 		
 		//비밀번호 
 		JLabel newPw = new JLabel("New PW : ");
@@ -77,12 +77,13 @@ public class ChangePwPanel extends JPanel{
         public void actionPerformed(ActionEvent e) {
         	String input = e.getActionCommand();
         	if((e.getSource() == pwCheck)){
-                	String pw = new String(pwField.getPassword());
+                	String nPw = new String(newPwField.getPassword());
                 	String cpw = new String(cpwField.getPassword());
-            		if(!pw.equals(cpw)) {
+            		if(!nPw.equals(cpw)) {
             			check.setText("불일치합니다.");
             			cpwField.setText(null);
-            			pwField.setText(null);
+            			idField.setText(null);
+            			newPwField.setText(null);
             		}
             		else {
             			check.setText("일치합니다.");
@@ -90,13 +91,32 @@ public class ChangePwPanel extends JPanel{
             		}
         	}
         	else if(input.equals("Okey")) {
-        		if(pwDuplicate==true) {
-        			pwField.setText(null);
-        			cpwField.setText(null);
-        			JOptionPane.showMessageDialog(null, "PW를 변경했습니다.", "MESSAGE", JOptionPane.PLAIN_MESSAGE);
-        			new LoginPanel();
-        			ChangePwPanel.this.setVisible(false);
-        		}
+        		ConnectMysql.select(idField.getText()); //아이디가 존재하는지 확인 필요 
+    			if(pwDuplicate == false || idField.getText().isEmpty()) {
+    				JOptionPane.showMessageDialog(null, "입력되지 않은 항목이 있습니다.", "MESSAGE", JOptionPane.PLAIN_MESSAGE);
+    			}
+    			else {
+    				if(ConnectMysql.selectId==1) {
+						ConnectMysql.updateInfo(idField.getText(),newPwField.getText());
+						JOptionPane.showMessageDialog(null, "PW 변경이 완료되었습니다!", "MESSAGE", JOptionPane.PLAIN_MESSAGE);
+						cpwField.setText(null);
+						idField.setText(null);
+						check.setText("입력하세요");
+						newPwField.setText(null);
+						new LoginPanel();
+						pwDuplicate=false;
+						ChangePwPanel.this.setVisible(false);
+    				}
+    				else {
+    					JOptionPane.showMessageDialog(null, "ID가 존재하지 않습니다.", "MESSAGE", JOptionPane.PLAIN_MESSAGE);
+    					cpwField.setText(null);
+						idField.setText(null);
+						pwDuplicate=false;
+						check.setText("입력하세요");
+						newPwField.setText(null);
+    				}
+    			}
+
         	}
         }
     };

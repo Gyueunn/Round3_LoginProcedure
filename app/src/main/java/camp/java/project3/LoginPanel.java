@@ -74,32 +74,37 @@ public class LoginPanel extends JPanel{
             		JOptionPane.showMessageDialog(null, "입력되지 않은 항목이 있습니다.", "MESSAGE", JOptionPane.PLAIN_MESSAGE);
             	}
         		else {
-        			ConnectMysql.select(idField.getText(), pwField.getText());
-        			if(MainFrame.userId.equals("Adminid")) {
-        				
-        				
-        				
-        				
-        				
-        				
-        				JOptionPane.showMessageDialog(null, "관리자로 로그인 되었습니다.", "MESSAGE", JOptionPane.PLAIN_MESSAGE);
+        			if(idField.getText().equals("Myadmin") && pwField.getText().equals("1111")) {
+        				ConnectMysql.selectAllUser();
+        				if(ConnectMysql.countNum!=0) {
+        					ConnectMysql.selectUser();
+            				JOptionPane.showMessageDialog(null, "관리자로 로그인 되었습니다.", "MESSAGE", JOptionPane.PLAIN_MESSAGE);
+            				new AdminPanel();
+            				LoginPanel.this.setVisible(false);
+        				}
+        				else JOptionPane.showMessageDialog(null, "회원가입된 계정이 없습니다.", "MESSAGE", JOptionPane.PLAIN_MESSAGE);
         				idField.setText(null);
             			pwField.setText(null);
-        				new AdminPanel();
-        				LoginPanel.this.setVisible(false);
         			}
         			else {
-        				if(ConnectMysql.loginSuccess == 1) {
-            				MainFrame.userId = idField.getText();
-            				JOptionPane.showMessageDialog(null, "로그인 되었습니다.", "MESSAGE", JOptionPane.PLAIN_MESSAGE);
-            				idField.setText(null);
-                			pwField.setText(null);
-                			new UserPanel();
-                			LoginPanel.this.setVisible(false);
-            			}
-            			else {
-            				JOptionPane.showMessageDialog(null, "로그인에 실패했습니다.", "MESSAGE", JOptionPane.PLAIN_MESSAGE);
-            			}
+        				ConnectMysql.select(idField.getText());
+        				if(ConnectMysql.selectId == 1) {
+        					ConnectMysql.select(idField.getText(), pwField.getText());
+            				if(ConnectMysql.loginSuccess == 1) {
+                				MainFrame.userId = idField.getText();
+                				JOptionPane.showMessageDialog(null, "로그인 되었습니다.", "MESSAGE", JOptionPane.PLAIN_MESSAGE);
+                				idField.setText(null);
+                    			pwField.setText(null);
+                    			new UserPanel();
+                    			LoginPanel.this.setVisible(false);
+                			}
+                			else {
+                				JOptionPane.showMessageDialog(null, "PW가 틀렸습니다.", "MESSAGE", JOptionPane.PLAIN_MESSAGE);
+                			}
+        				}
+        				else {
+        					JOptionPane.showMessageDialog(null, "존재하지 않는 ID입니다.", "MESSAGE", JOptionPane.PLAIN_MESSAGE);
+        				}
         			}
         		}
         	}
